@@ -1,20 +1,22 @@
 PyQTimidity
 ===========
 
-A small macOS GUI of timidity++ for playing midi files.
+A small macOS GUI of timidity++ for playing midi files supporting SoundFont switching.
 
-timidity++ を使って MIDI ファイルを再生するための macOS 用 GUI.
+TiMidity++ を使って MIDI ファイルを再生するための macOS 用 GUI. 再生に使用するサウンドフォントファイルの切り替えにも対応.
 
 ![Screen](./images/screen.png)
 
 Usage
 -----
 
-*  先に timidity++ をインストールしておいてください.
+*  先に TiMidity++ をインストールしておいてください.
     -  [Homebrew](https://brew.sh/index_ja.html) を使えば、`brew install timidity` で完了します.
     
 *  後は、PyQTimidity を起動して MIDI ファイルを読み込めば OK です.
     -  PyQTimidity は標準で `/usr/local/bin/timidity` を読み込もうとします. これを変更する場合には、PyQTimidity の初回起動時に生成される `~/.py-qtimidity-pref.json` の `"TIMIDITY_LOCATION"` の値を書き換えてください.
+    
+*  Preferences から読み込む `timidity.cfg` ファイルを切り替えたり、SF2 形式の SoundFont ファイルを直接再生に使用するように指定できます.
     
 Shortcuts
 ---------
