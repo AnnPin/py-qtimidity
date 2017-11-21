@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import re
 import subprocess
 import shutil
 import random
@@ -24,6 +23,9 @@ class AppCore(QObject):
         self.wave_filedir = wave_filedir
         self.current_wave_filepath = ''
         self.current_midi_filepath = ''
+
+        self.current_timidity_config_mode = 'default'
+        self.current_timidity_config_path = ''
 
         self.current_media = None
         self.playlist = QMediaPlaylist()
@@ -74,8 +76,32 @@ class AppCore(QObject):
         )
 
     def exec_timidity(self, wave_filepath, midi_filepath):
+        config_mode = self.current_timidity_config_mode
+        config_path = self.current_timidity_config_path
+        config = None
+
+        if config_mode == 'sf':
+            cfg_filepath = os.path.join(self.wave_filedir, "soundfont.cfg")
+            with open(cfg_filepath, 'w') as f:
+                f.write('soundfont "{}"'.format(config_path))
+            config = ['-c', cfg_filepath]
+        elif config_mode == 'cfg':
+            config = ['-c', config_path]
+        elif config_mode == 'default':
+            config = []
+
+        """
+        timidity -c /usr/local/Cellar/timidity/2.14.0/share/msgs/msgs.cfg ~/Downloads/nm/nm35.mid
+        """
+
+        timidity_params_list = [
+            [self.preferences['TIMIDITY_LOCATION']],
+            config,
+            ['-o', wave_filepath, '-Ow', midi_filepath]
+        ]
+        timidity_params = [item for sublist in timidity_params_list for item in sublist]
         subprocess.run(
-            (self.preferences['TIMIDITY_LOCATION'], '-o', wave_filepath, '-Ow', midi_filepath),
+            tuple(timidity_params),
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         )
@@ -96,7 +122,10 @@ class AppCore(QObject):
     Register slots
     """
     @pyqtSlot(str)
-    def inport_midi_file(self, midi_filepath):
+    def import_midi_file(self, midi_filepath):
+        if midi_filepath == '':
+            return
+
         if self.isPlaying:
             self.player.pause()
             self.isPlaying = False
@@ -105,7 +134,6 @@ class AppCore(QObject):
         if self.current_wave_filepath is not '':
             os.remove(self.current_wave_filepath)
 
-        # self.current_midi_filepath = re.sub('^file://', '', filepath)
         self.current_midi_filepath = midi_filepath
         orig_filename = self.current_midi_filepath.split(os.sep)[-1]
         self.filename_changed(orig_filename)
@@ -124,7 +152,6 @@ class AppCore(QObject):
 
     @pyqtSlot(str)
     def export_wave_file(self, wave_filepath):
-        # wave_filepath = re.sub('^file://', '', filepath)
         self.exec_timidity(wave_filepath, self.current_midi_filepath)
 
     @pyqtSlot()
@@ -159,5 +186,14 @@ class AppCore(QObject):
     def toggle_loop(self):
         self.loopEnabled = not self.loopEnabled
         self.setLoopLabel.emit(
-            "Disable loop" if self.loopEnabled else "Enable loop"
+            'Disable loop' if self.loopEnabled else 'Enable loop'
         )
+
+    @pyqtSlot(str, str)
+    def set_timidity_config(self, config_mode, config_path):
+        if self.current_timidity_config_path != config_path:
+            self.current_timidity_config_mode = config_mode
+            self.current_timidity_config_path = config_path
+
+            # Reload current midi file to reflect the config
+            self.import_midi_file(self.current_midi_filepath)

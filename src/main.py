@@ -33,7 +33,7 @@ def resource_path(relative_path):
 
 def get_default_preferences():
     default_pref = {
-        "TIMIDITY_LOCATION": "/usr/local/bin/timidity"
+        'TIMIDITY_LOCATION': '/usr/local/bin/timidity'
     }
     return default_pref
 

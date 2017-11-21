@@ -125,6 +125,10 @@ ApplicationWindow {
                     Button {
                         id: sfOkButton
                         text: qsTr("OK")
+                        onClicked: {
+                            app_core.set_timidity_config("sf", sfFilePath.text)
+                            preferencesWindow.visible = false
+                        }
                     }
 
                     Button {
@@ -192,6 +196,10 @@ ApplicationWindow {
                     Button {
                         id: cfgOkButton
                         text: qsTr("OK")
+                        onClicked: {
+                            app_core.set_timidity_config("cfg", cfgFilePath.text)
+                            preferencesWindow.visible = false
+                        }
                     }
 
                     Button {
@@ -236,6 +244,10 @@ ApplicationWindow {
                     Button {
                         id: defaultCfgOkButton
                         text: qsTr("OK")
+                        onClicked: {
+                            app_core.set_timidity_config("default", "")
+                            preferencesWindow.visible = false
+                        }
                     }
 
                     Button {

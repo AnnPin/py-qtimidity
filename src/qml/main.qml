@@ -27,7 +27,7 @@ Controls2.ApplicationWindow {
         selectMultiple: false
         onAccepted: {
             var filePath = fileOpenDialog.fileUrl.toString().replace(/^file:\/\//, "")
-            app_core.inport_midi_file(filePath)
+            app_core.import_midi_file(filePath)
             app_core.set_volume(volumeSlider.value)
 
             rewindButton.enabled = true
