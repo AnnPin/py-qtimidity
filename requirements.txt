@@ -1,0 +1,10 @@
+future==0.16.0
+macholib==1.8
+pefile==2017.11.5
+PyInstaller==3.3
+pyparsing==2.1.8
+PyQt5==5.9.1
+python-dateutil==2.5.3
+pytz==2016.6.1
+sip==4.19.5
+six==1.10.0
