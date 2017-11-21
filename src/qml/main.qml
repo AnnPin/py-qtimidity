@@ -1,11 +1,10 @@
-import QtQuick 2.7
-import QtQuick.Controls 2.2
-import QtQuick.Layouts 1.3
-import Qt.labs.platform 1.0
-import QtQuick.Window 2.0
-import QtQuick.Dialogs 1.1
+import QtQuick 2.7 as QtQuick2
+import QtQuick.Controls 2.2 as Controls2
+import QtQuick.Layouts 1.3 as Layouts
+import Qt.labs.platform 1.0 as Platform
+import QtQuick.Dialogs 1.1 as Dialogs
 
-ApplicationWindow {
+Controls2.ApplicationWindow {
     id: mainWindow
     visible: true
     width: 400
@@ -14,7 +13,12 @@ ApplicationWindow {
     minimumHeight: 140
     title: qsTr("PyQTimidity")
 
-    FileDialog {
+    Preferences{
+        id: preferencesWindow
+        visible: false
+    }
+
+    Dialogs.FileDialog {
         id: fileOpenDialog
         objectName: "fileOpenDialog"
         title: "Please choose a midi file"
@@ -22,26 +26,58 @@ ApplicationWindow {
         selectFolder: false
         selectMultiple: false
         onAccepted: {
-            timidity.exec_timidity(fileOpenDialog.fileUrl)
+            timidity.inport_midi_file(fileOpenDialog.fileUrl)
             timidity.set_volume(volumeSlider.value)
 
             rewindButton.enabled = true
             playPauseButton.enabled = true
             fastFeedButton.enabled = true
             timeSlider.enabled = true
+            exportMenuItem.enabled = true
         }
         onRejected: { /* Qt.quit() */ }
-        // Component.onCompleted: visible = true
+        // QtQuick2.Component.onCompleted: visible = true
     }
 
-    MenuBar {
+    Dialogs.FileDialog {
+        id: waveExportDialog
+        objectName: "waveExportDialog"
+        title: "Please select the output file name"
+        nameFilters: [ "WAV files (*.wav *.wave)", "All files (*)" ]
+        selectFolder: false
+        selectMultiple: false
+        selectExisting: false
+        onAccepted: {
+            timidity.export_wave_file(waveExportDialog.fileUrl)
+        }
+        onRejected: {
+        }
+    }
+
+    Platform.MenuBar {
         id: menuBar
 
-        Menu {
+        Platform.Menu {
+            Platform.MenuItem {
+                id: preferencesItem
+                objectName: "preferencesItem"
+                text: qsTr("Preferences")
+                role: Platform.MenuItem.PreferencesRole
+                onTriggered: {
+                    // TODO
+                    // Load soundfont
+                    // Load config file
+                    preferencesWindow.visible = true
+                }
+            }
+        }
+
+
+        Platform.Menu {
             id: fileMenu
             title: qsTr("File")
 
-            MenuItem {
+            Platform.MenuItem {
                 id: openMenuItem
                 objectName: "openMenuItem"
                 text: qsTr("Open")
@@ -50,13 +86,24 @@ ApplicationWindow {
                     fileOpenDialog.open()
                 }
             }
+
+            Platform.MenuItem {
+                id: exportMenuItem
+                objectName: "exportMenuItem"
+                text: qsTr("Export as WAV")
+                shortcut: "Ctrl+Shift+E"
+                enabled: false
+                onTriggered: {
+                    waveExportDialog.open()
+                }
+            }
         }
 
-        Menu {
+        Platform.Menu {
             id: playbackMenu
             title: qsTr("Playback")
 
-            MenuItem {
+            Platform.MenuItem {
                 id: loopItem
                 objectName: "loopItem"
                 text: qsTr("Enable loop")
@@ -67,11 +114,11 @@ ApplicationWindow {
             }
         }
 
-        Menu {
+        Platform.Menu {
             id: helpMenu
             title: qsTr("&Help")
 
-            MenuItem {
+            Platform.MenuItem {
                 text: qsTr("Check GitHub repository")
                 onTriggered: {
                     Qt.openUrlExternally("https://github.com/AnnPin/py-qtimidity")
@@ -80,7 +127,7 @@ ApplicationWindow {
         }
     }
 
-    ColumnLayout {
+    Layouts.ColumnLayout {
         id: columnLayout
         anchors.rightMargin: 10
         anchors.leftMargin: 10
@@ -88,48 +135,48 @@ ApplicationWindow {
         anchors.topMargin: 0
         anchors.fill: parent
 
-        RowLayout {
+        Layouts.RowLayout {
             id: rowLayout
             width: 100
             height: 100
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            Layouts.Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-            Text {
+            QtQuick2.Text {
                 id: currentTime
                 text: qsTr("00:00")
                 font.pixelSize: 12
             }
 
-            Slider {
+            Controls2.Slider {
                 id: timeSlider
-                Layout.fillWidth: true
+                Layouts.Layout.fillWidth: true
                 enabled: false
                 from: 0
                 to: 0
                 stepSize: 1
-                snapMode: Slider.SnapAlways
+                snapMode: Controls2.Slider.SnapAlways
                 value: 0
                 onMoved: {
                     timidity.set_position(timeSlider.value)
                 }
             }
 
-            Text {
+            QtQuick2.Text {
                 id: endTime
                 text: qsTr("00:00")
                 font.pixelSize: 12
             }
         }
 
-        RowLayout {
+        Layouts.RowLayout {
             id: rowLayout1
             width: 100
             height: 100
             spacing: 10
-            Layout.fillWidth: false
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            Layouts.Layout.fillWidth: false
+            Layouts.Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-            Button {
+            Controls2.Button {
                 id: rewindButton
                 text: qsTr("<<")
                 enabled: false
@@ -138,7 +185,7 @@ ApplicationWindow {
                     timidity.set_position(timeSlider.value - 10000)
                 }
 
-                Shortcut {
+                QtQuick2.Shortcut {
                     sequence: "Left"
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
@@ -148,7 +195,7 @@ ApplicationWindow {
                 }
             }
 
-            Button {
+            Controls2.Button {
                 id: playPauseButton
                 text: qsTr("Play/Pause")
                 enabled: false
@@ -158,7 +205,7 @@ ApplicationWindow {
                 }
                 focus: false
 
-                Shortcut {
+                QtQuick2.Shortcut {
                     sequence: "Space"
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
@@ -168,7 +215,7 @@ ApplicationWindow {
                 }
             }
 
-            Button {
+            Controls2.Button {
                 id: fastFeedButton
                 text: qsTr(">>")
                 enabled: false
@@ -177,7 +224,7 @@ ApplicationWindow {
                     timidity.set_position(timeSlider.value + 10000)
                 }
 
-                Shortcut {
+                QtQuick2.Shortcut {
                     sequence: "Right"
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
@@ -188,25 +235,25 @@ ApplicationWindow {
             }
         }
 
-        RowLayout {
+        Layouts.RowLayout {
             id: rowLayout2
             width: 100
             height: 100
-            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+            Layouts.Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
 
-            Slider {
+            Controls2.Slider {
                 id: volumeSlider
-                Layout.fillWidth: true
+                Layouts.Layout.fillWidth: true
                 from: 0
                 to: 100
                 stepSize: 1
-                snapMode: Slider.SnapAlways
+                snapMode: Controls2.Slider.SnapAlways
                 value: 100
                 onValueChanged: {
                     timidity.set_volume(volumeSlider.value)
                 }
 
-                Shortcut {
+                QtQuick2.Shortcut {
                     sequence: "Up"
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
@@ -214,7 +261,7 @@ ApplicationWindow {
                         volumeSlider.value = volumeSlider.value + 10
                     }
                 }
-                Shortcut {
+                QtQuick2.Shortcut {
                     sequence: "Down"
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
@@ -227,7 +274,7 @@ ApplicationWindow {
         }
     }
 
-    Connections {
+    QtQuick2.Connections {
         target: timidity
 
         onSetFilenameLabel: {

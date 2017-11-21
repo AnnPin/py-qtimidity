@@ -55,6 +55,7 @@ class Timidity(QObject):
         self.preferences = preferences
         self.wave_filedir = wave_filedir
         self.current_wave_filepath = ''
+        self.current_midi_filepath = ''
 
         self.current_media = None
         self.playlist = QMediaPlaylist()
@@ -104,6 +105,13 @@ class Timidity(QObject):
             '{}:{:02d}'.format(duration_seconds // 60, duration_seconds % 60)
         )
 
+    def exec_timidity(self, wave_filepath, midi_filepath):
+        subprocess.run(
+            (self.preferences['TIMIDITY_LOCATION'], '-o', wave_filepath, '-Ow', midi_filepath),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+
     """
     Register signals
     """
@@ -120,7 +128,7 @@ class Timidity(QObject):
     Register slots
     """
     @pyqtSlot(str)
-    def exec_timidity(self, filepath):
+    def inport_midi_file(self, filepath):
         if self.isPlaying:
             self.player.pause()
             self.isPlaying = False
@@ -129,8 +137,8 @@ class Timidity(QObject):
         if self.current_wave_filepath is not '':
             os.remove(self.current_wave_filepath)
 
-        cleaned_filepath = re.sub('^file://', '', filepath)
-        orig_filename = cleaned_filepath.split(os.sep)[-1]
+        self.current_midi_filepath = re.sub('^file://', '', filepath)
+        orig_filename = self.current_midi_filepath.split(os.sep)[-1]
         self.filename_changed(orig_filename)
 
         wave_filename = '{}-{}.wav'.format(
@@ -138,15 +146,17 @@ class Timidity(QObject):
             generate_random_string(8)
         )
         self.current_wave_filepath = os.path.join(self.wave_filedir, wave_filename)
-        subprocess.run(
-            (self.preferences['TIMIDITY_LOCATION'], '-o', self.current_wave_filepath, '-Ow', cleaned_filepath),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+        self.exec_timidity(self.current_wave_filepath, self.current_midi_filepath)
+
         self.current_media = QMediaContent(QUrl.fromLocalFile(self.current_wave_filepath))
         self.playlist.addMedia(self.current_media)
         self.playlist.setCurrentIndex(0)
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
+
+    @pyqtSlot(str)
+    def export_wave_file(self, filepath):
+        wave_filepath = re.sub('^file://', '', filepath)
+        self.exec_timidity(wave_filepath, self.current_midi_filepath)
 
     @pyqtSlot()
     def play_pause_button_clicked(self):
