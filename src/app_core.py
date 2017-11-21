@@ -90,10 +90,6 @@ class AppCore(QObject):
         elif config_mode == 'default':
             config = []
 
-        """
-        timidity -c /usr/local/Cellar/timidity/2.14.0/share/msgs/msgs.cfg ~/Downloads/nm/nm35.mid
-        """
-
         timidity_params_list = [
             [self.preferences['TIMIDITY_LOCATION']],
             config,
