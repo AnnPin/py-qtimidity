@@ -1,7 +1,7 @@
 PyQTimidity
 ===========
 
-A small macOS GUI of timidity++ for playing midi files supporting SoundFont switching.
+A small macOS GUI of TiMidity++ for playing midi files supporting SoundFont switching.
 
 TiMidity++ を使って MIDI ファイルを再生するための macOS 用 GUI. 再生に使用するサウンドフォントファイルの切り替えにも対応.
 
