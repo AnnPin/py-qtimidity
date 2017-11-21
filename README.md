@@ -5,6 +5,8 @@ A small macOS GUI of timidity++ for playing midi files.
 
 timidity++ を使って MIDI ファイルを再生するための macOS 用 GUI.
 
+![Screen](./images/screen.png)
+
 Usage
 -----
 
@@ -13,6 +15,24 @@ Usage
     
 *  後は、PyQTimidity を起動して MIDI ファイルを読み込めば OK です.
     -  PyQTimidity は標準で `/usr/local/bin/timidity` を読み込もうとします. これを変更する場合には、PyQTimidity の初回起動時に生成される `~/.py-qtimidity-pref.json` の `"TIMIDITY_LOCATION"` の値を書き換えてください.
+    
+Shortcuts
+---------
+
+*  `Command + O`
+    -  ファイルを開く
+*  `Space`
+    -  再生開始 / 一時停止
+*  `Left`
+    -  10 秒前に戻す
+*  `Right`
+    -  10 秒先に進む
+*  `Up`
+    -  音量を上げる
+*  `Bottom`
+    -  音量を下げる
+*  `Command + Option + L`
+    -  ループ再生の ON / OFF
 
 Development
 -----------
