@@ -20,7 +20,6 @@ from PyQt5 import QtQuick
 
 PREFERENCES_FILE_PATH = os.path.expanduser(os.path.join('~', '.py-qtimidity-pref.json'))
 MAIN_QML = 'qml/main.qml'
-# PREFERENCES_NOT_FOUND_QML = 'qml/preferences_not_found.qml'
 PREFERENCES_ERROR_QML = 'qml/preferences_error.qml'
 
 
