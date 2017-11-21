@@ -26,8 +26,8 @@ Controls2.ApplicationWindow {
         selectFolder: false
         selectMultiple: false
         onAccepted: {
-            timidity.inport_midi_file(fileOpenDialog.fileUrl)
-            timidity.set_volume(volumeSlider.value)
+            app_core.inport_midi_file(fileOpenDialog.fileUrl)
+            app_core.set_volume(volumeSlider.value)
 
             rewindButton.enabled = true
             playPauseButton.enabled = true
@@ -48,7 +48,7 @@ Controls2.ApplicationWindow {
         selectMultiple: false
         selectExisting: false
         onAccepted: {
-            timidity.export_wave_file(waveExportDialog.fileUrl)
+            app_core.export_wave_file(waveExportDialog.fileUrl)
         }
         onRejected: {
         }
@@ -109,7 +109,7 @@ Controls2.ApplicationWindow {
                 text: qsTr("Enable loop")
                 shortcut: "Ctrl+Alt+L"
                 onTriggered: {
-                    timidity.toggle_loop()
+                    app_core.toggle_loop()
                 }
             }
         }
@@ -157,7 +157,7 @@ Controls2.ApplicationWindow {
                 snapMode: Controls2.Slider.SnapAlways
                 value: 0
                 onMoved: {
-                    timidity.set_position(timeSlider.value)
+                    app_core.set_position(timeSlider.value)
                 }
             }
 
@@ -182,7 +182,7 @@ Controls2.ApplicationWindow {
                 enabled: false
                 onClicked: {
                     rewindButton.focus = false
-                    timidity.set_position(timeSlider.value - 10000)
+                    app_core.set_position(timeSlider.value - 10000)
                 }
 
                 QtQuick2.Shortcut {
@@ -190,7 +190,7 @@ Controls2.ApplicationWindow {
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
                     onActivated: {
-                        timidity.set_position(timeSlider.value - 10000)
+                        app_core.set_position(timeSlider.value - 10000)
                     }
                 }
             }
@@ -201,7 +201,7 @@ Controls2.ApplicationWindow {
                 enabled: false
                 onClicked: {
                     playPauseButton.focus = false
-                    timidity.play_pause_button_clicked()
+                    app_core.play_pause_button_clicked()
                 }
                 focus: false
 
@@ -210,7 +210,7 @@ Controls2.ApplicationWindow {
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
                     onActivated: {
-                        timidity.play_pause_button_clicked()
+                        app_core.play_pause_button_clicked()
                     }
                 }
             }
@@ -221,7 +221,7 @@ Controls2.ApplicationWindow {
                 enabled: false
                 onClicked: {
                     fastFeedButton.focus = false
-                    timidity.set_position(timeSlider.value + 10000)
+                    app_core.set_position(timeSlider.value + 10000)
                 }
 
                 QtQuick2.Shortcut {
@@ -229,7 +229,7 @@ Controls2.ApplicationWindow {
                     autoRepeat: false
                     context: Qt.ApplicationShortcut
                     onActivated: {
-                        timidity.set_position(timeSlider.value + 10000)
+                        app_core.set_position(timeSlider.value + 10000)
                     }
                 }
             }
@@ -250,7 +250,7 @@ Controls2.ApplicationWindow {
                 snapMode: Controls2.Slider.SnapAlways
                 value: 100
                 onValueChanged: {
-                    timidity.set_volume(volumeSlider.value)
+                    app_core.set_volume(volumeSlider.value)
                 }
 
                 QtQuick2.Shortcut {
@@ -275,7 +275,7 @@ Controls2.ApplicationWindow {
     }
 
     QtQuick2.Connections {
-        target: timidity
+        target: app_core
 
         onSetFilenameLabel: {
             mainWindow.title = qsTr("PyQTimidity - " + newFilenameLabel)
