@@ -26,7 +26,8 @@ Controls2.ApplicationWindow {
         selectFolder: false
         selectMultiple: false
         onAccepted: {
-            app_core.inport_midi_file(fileOpenDialog.fileUrl)
+            var filePath = fileOpenDialog.fileUrl.toString().replace(/^file:\/\//, "")
+            app_core.inport_midi_file(filePath)
             app_core.set_volume(volumeSlider.value)
 
             rewindButton.enabled = true
@@ -48,7 +49,8 @@ Controls2.ApplicationWindow {
         selectMultiple: false
         selectExisting: false
         onAccepted: {
-            app_core.export_wave_file(waveExportDialog.fileUrl)
+            var filePath = waveExportDialog.fileUrl.toString().replace(/^file:\/\//, "")
+            app_core.export_wave_file(filePath)
         }
         onRejected: {
         }

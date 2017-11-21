@@ -1,7 +1,8 @@
-import QtQuick 2.0
+import QtQuick 2.7
 import QtQuick.Window 2.3
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
+import QtQuick.Dialogs 1.1
 
 ApplicationWindow {
     id: preferencesWindow
@@ -11,6 +12,45 @@ ApplicationWindow {
     minimumHeight: 200
     visible: true
     title: "Preferences"
+
+    Shortcut {
+        sequence: "Esc"
+        autoRepeat: false
+        context: Qt.ApplicationShortcut
+        onActivated: {
+            preferencesWindow.visible = false
+        }
+    }
+
+    FileDialog {
+        id: sfOpenDialog
+        objectName: "sfOpenDialog"
+        title: "Please choose a SoundFont file"
+        nameFilters: [ "SoundFont files (*.sf2)", "All files (*)" ]
+        selectFolder: false
+        selectMultiple: false
+        onAccepted: {
+            var filePath = sfOpenDialog.fileUrl.toString().replace(/^file:\/\//, "")
+            sfFilePath.text = qsTr(filePath)
+        }
+        onRejected: {
+        }
+    }
+
+    FileDialog {
+        id: cfgOpenDialog
+        objectName: "cfgOpenDialog"
+        title: "Please choose a timidity.cfg file"
+        nameFilters: [ "timidity.cfg files (*.cfg)", "All files (*)" ]
+        selectFolder: false
+        selectMultiple: false
+        onAccepted: {
+            var filePath = cfgOpenDialog.fileUrl.toString().replace(/^file:\/\//, "")
+            cfgFilePath.text = qsTr(filePath)
+        }
+        onRejected: {
+        }
+    }
 
     header: TabBar {
         id: preferencesTabBar
@@ -63,12 +103,16 @@ ApplicationWindow {
                         id: sfFilePath
                         text: qsTr("")
                         placeholderText: "Path to your SoundFont file..."
+                        selectByMouse: true
                         Layout.fillWidth: true
                     }
 
                     Button {
                         id: sfSearchButton
                         text: qsTr("Search")
+                        onClicked: {
+                            sfOpenDialog.open()
+                        }
                     }
                 }
 
@@ -86,6 +130,9 @@ ApplicationWindow {
                     Button {
                         id: sfCancelButton
                         text: qsTr("Cancel")
+                        onClicked: {
+                            preferencesWindow.visible = false
+                        }
                     }
                 }
             }
@@ -123,12 +170,16 @@ ApplicationWindow {
                         id: cfgFilePath
                         text: qsTr("")
                         placeholderText: "Path to your timidity.cfg file..."
+                        selectByMouse: true
                         Layout.fillWidth: true
                     }
 
                     Button {
                         id: cfgSearchButton
                         text: qsTr("Search")
+                        onClicked: {
+                            cfgOpenDialog.open()
+                        }
                     }
                 }
 
@@ -146,6 +197,9 @@ ApplicationWindow {
                     Button {
                         id: cfgCancelButton
                         text: qsTr("Cancel")
+                        onClicked: {
+                            preferencesWindow.visible = false
+                        }
                     }
                 }
             }
@@ -187,6 +241,9 @@ ApplicationWindow {
                     Button {
                         id: defaultCfgCancelButton
                         text: qsTr("Cancel")
+                        onClicked: {
+                            preferencesWindow.visible = false
+                        }
                     }
                 }
             }

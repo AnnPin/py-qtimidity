@@ -96,7 +96,7 @@ class AppCore(QObject):
     Register slots
     """
     @pyqtSlot(str)
-    def inport_midi_file(self, filepath):
+    def inport_midi_file(self, midi_filepath):
         if self.isPlaying:
             self.player.pause()
             self.isPlaying = False
@@ -105,7 +105,8 @@ class AppCore(QObject):
         if self.current_wave_filepath is not '':
             os.remove(self.current_wave_filepath)
 
-        self.current_midi_filepath = re.sub('^file://', '', filepath)
+        # self.current_midi_filepath = re.sub('^file://', '', filepath)
+        self.current_midi_filepath = midi_filepath
         orig_filename = self.current_midi_filepath.split(os.sep)[-1]
         self.filename_changed(orig_filename)
 
@@ -122,8 +123,8 @@ class AppCore(QObject):
         self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
 
     @pyqtSlot(str)
-    def export_wave_file(self, filepath):
-        wave_filepath = re.sub('^file://', '', filepath)
+    def export_wave_file(self, wave_filepath):
+        # wave_filepath = re.sub('^file://', '', filepath)
         self.exec_timidity(wave_filepath, self.current_midi_filepath)
 
     @pyqtSlot()
