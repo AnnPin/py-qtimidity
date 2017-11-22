@@ -29,8 +29,8 @@ Controls2.ApplicationWindow {
             var filePath = fileOpenDialog.fileUrl.toString().replace(/^file:\/\//, "")
             loadMidiFile(filePath)
         }
-        onRejected: { /* Qt.quit() */ }
-        // QtQuick2.Component.onCompleted: visible = true
+        onRejected: {
+        }
     }
 
     function loadMidiFile(filePath) {
@@ -167,7 +167,7 @@ Controls2.ApplicationWindow {
 
             QtQuick2.Text {
                 id: endTime
-                text: qsTr("00:00")
+                text: qsTr("--:--")
                 font.pixelSize: 12
             }
         }
@@ -286,7 +286,7 @@ Controls2.ApplicationWindow {
 
         QtQuick2.Rectangle {
             anchors.fill: parent
-            opacity: 0.25
+            opacity: 0.15
             color: "black"
         }
 

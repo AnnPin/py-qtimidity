@@ -73,6 +73,9 @@ class AppCore(QObject):
             '{}:{:02d}'.format(duration_seconds // 60, duration_seconds % 60)
         )
 
+    def reset_duration_label(self):
+        self.setNewEndTimeLabel.emit('--:--')
+
     def exec_timidity(self, wave_filepath, midi_filepath, on_process_completed=None):
         config_mode = self.current_timidity_config_mode
         config_path = self.current_timidity_config_path
@@ -110,6 +113,10 @@ class AppCore(QObject):
         thread.start()
         self.toggleBusyIndicator.emit()
 
+    def load_midi_file_immediately(self, midi_filepath):
+        self.current_midi_filepath = midi_filepath
+        self.should_load_midi_file_immediately()
+
     """
     Register signals
     """
@@ -143,6 +150,7 @@ class AppCore(QObject):
             self.player.pause()
             self.isPlaying = False
 
+        self.reset_duration_label()
         self.playlist.clear()
         if self.current_wave_filepath is not '':
             os.remove(self.current_wave_filepath)

@@ -6,8 +6,8 @@ import os
 import re
 import json
 import tempfile
-from PyQt5.QtCore import QUrl
-from PyQt5.QtGui import QGuiApplication
+from PyQt5.QtCore import QUrl, QObject, QEvent
+from PyQt5.Qt import QApplication
 from PyQt5.QtQml import QQmlApplicationEngine
 from app_core import AppCore
 
@@ -39,17 +39,41 @@ def get_default_preferences():
     return default_pref
 
 
-def is_midi_file_passed(argv):
+def is_valid_midi_file(filepath):
     re_patter = re.compile('\.(mid|midi)$', re.IGNORECASE)
-    # Check input argument length is 2 and the second is a valid midi file.
+    # Check the file path is valid or not.
     # In addition, check whether it present on file system or not.
-    if len(argv) == 2 and re_patter.search(argv[1]) and os.path.exists(argv[1]):
+    return re_patter.search(filepath) and os.path.exists(filepath)
+
+
+def is_midi_file_passed(argv):
+    # Check input argument length is 2 and the second is a valid midi file.
+    if len(argv) == 2 and is_valid_midi_file(argv[1]):
         return True
     return False
 
 
+class PyQTimidityApplication(QApplication):
+    def __init__(self, argv):
+        QObject.__init__(self, argv)
+        self.app_core = None
+
+    def set_app_core(self, app_core):
+        self.app_core = app_core
+
+    def event(self, e):
+        # Handle double-click file open event on macOS.
+        if e.type() == QEvent.FileOpen:
+            midi_filepath = e.file()
+            if self.app_core is not None and is_valid_midi_file(midi_filepath):
+                self.app_core.load_midi_file_immediately(midi_filepath)
+            return True
+        else:
+            return super().event(e)
+
+
 def main():
-    app = QGuiApplication(sys.argv)
+    app = PyQTimidityApplication(sys.argv)
     engine = QQmlApplicationEngine()
     engine.quit.connect(app.quit)
     app_core = None
@@ -67,6 +91,7 @@ def main():
                 app_core = AppCore(preferences, wave_filedir, sys.argv[1])
             else:
                 app_core = AppCore(preferences, wave_filedir)
+            app.set_app_core(app_core)
             qml_path = resource_path(MAIN_QML)
             engine.rootContext().setContextProperty('app_core', app_core)
 
