@@ -47,16 +47,14 @@ class AppCore(QObject):
         self.setFilenameLabel.emit(filename)
 
     def media_status_changed(self):
-        if self.player.mediaStatus() in [QMediaPlayer.LoadedMedia, QMediaPlayer.BufferedMedia]:
-            self.isMediaLoaded = True
-
-        elif self.player.mediaStatus() in [QMediaPlayer.NoMedia, QMediaPlayer.LoadingMedia]:
-            self.isMediaLoaded = False
-
-        elif self.player.mediaStatus() in [QMediaPlayer.EndOfMedia]:
+        if self.player.mediaStatus() in [QMediaPlayer.EndOfMedia]:
             if not self.loopEnabled:
                 self.player.stop()
                 self.isPlaying = False
+
+        elif self.player.mediaStatus() in [QMediaPlayer.StalledMedia]:
+            self.player.stop()
+            self.isPlaying = False
 
     def position_changed(self):
         position_milliseconds = self.player.position()
@@ -170,9 +168,6 @@ class AppCore(QObject):
 
     @pyqtSlot()
     def play_pause_button_clicked(self):
-        if not self.isMediaLoaded:
-            return
-
         if self.isPlaying:
             self.player.pause()
         else:
@@ -182,12 +177,13 @@ class AppCore(QObject):
 
     @pyqtSlot(float)
     def set_position(self, position):
-        if not self.isMediaLoaded:
-            return
-
         if self.isPlaying:
             self.player.setPosition(int(position))
         else:
+            """
+            QMediaPlayer sometimes does not automatically buffer the media.
+            Thus, we enforce to execute QMediaPlayer::play() to buffer it.
+            """
             self.player.play()
             self.player.setPosition(int(position))
             self.player.pause()
