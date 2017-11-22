@@ -18,12 +18,12 @@ def generate_random_string(length):
 
 
 class AppCore(QObject):
-    def __init__(self, preferences, wave_filedir):
+    def __init__(self, preferences, wave_filedir, initial_midi_filepath=''):
         QObject.__init__(self)
         self.preferences = preferences
         self.wave_filedir = wave_filedir
         self.current_wave_filepath = ''
-        self.current_midi_filepath = ''
+        self.current_midi_filepath = initial_midi_filepath
 
         self.current_timidity_config_mode = 'default'
         self.current_timidity_config_path = ''
@@ -36,7 +36,6 @@ class AppCore(QObject):
         self.player.durationChanged.connect(self.duration_changed)
         self.player.positionChanged.connect(self.position_changed)
         self.isPlaying = False
-        self.isMediaLoaded = False
         self.loopEnabled = False
 
     def cleanup(self):
@@ -114,6 +113,7 @@ class AppCore(QObject):
     """
     Register signals
     """
+    loadMidiFileImmediately = pyqtSignal(bool, str, arguments=['loadImmediately', 'filePath'])
     setFilenameLabel = pyqtSignal(str, arguments=['newFilenameLabel'])
     setLoopLabel = pyqtSignal(str, arguments=['newLoopLabel'])
     toggleBusyIndicator = pyqtSignal()
@@ -127,6 +127,13 @@ class AppCore(QObject):
     """
     Register slots
     """
+    @pyqtSlot()
+    def should_load_midi_file_immediately(self):
+        self.loadMidiFileImmediately.emit(
+            False if self.current_midi_filepath == '' else True,
+            self.current_midi_filepath
+        )
+
     @pyqtSlot(str)
     def import_midi_file(self, midi_filepath):
         if midi_filepath == '':

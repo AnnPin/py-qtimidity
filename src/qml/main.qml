@@ -27,17 +27,21 @@ Controls2.ApplicationWindow {
         selectMultiple: false
         onAccepted: {
             var filePath = fileOpenDialog.fileUrl.toString().replace(/^file:\/\//, "")
-            app_core.import_midi_file(filePath)
-            app_core.set_volume(volumeSlider.value)
-
-            rewindButton.enabled = true
-            playPauseButton.enabled = true
-            fastFeedButton.enabled = true
-            timeSlider.enabled = true
-            exportMenuItem.enabled = true
+            loadMidiFile(filePath)
         }
         onRejected: { /* Qt.quit() */ }
         // QtQuick2.Component.onCompleted: visible = true
+    }
+
+    function loadMidiFile(filePath) {
+        app_core.import_midi_file(filePath)
+        app_core.set_volume(volumeSlider.value)
+
+        rewindButton.enabled = true
+        playPauseButton.enabled = true
+        fastFeedButton.enabled = true
+        timeSlider.enabled = true
+        exportMenuItem.enabled = true
     }
 
     Dialogs.FileDialog {
@@ -300,6 +304,12 @@ Controls2.ApplicationWindow {
     QtQuick2.Connections {
         target: app_core
 
+        onLoadMidiFileImmediately: {
+            if (loadImmediately) {
+                loadMidiFile(filePath)
+            }
+        }
+
         onSetFilenameLabel: {
             mainWindow.title = qsTr("PyQTimidity - " + newFilenameLabel)
         }
@@ -328,5 +338,9 @@ Controls2.ApplicationWindow {
             busyIndicatorPanel.visible = !busyIndicatorPanel.visible
             mainColumnLayout.enabled = !mainColumnLayout.enabled
         }
+    }
+
+    QtQuick2.Component.onCompleted: {
+        app_core.should_load_midi_file_immediately()
     }
 }

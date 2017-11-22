@@ -3,6 +3,7 @@
 
 import sys
 import os
+import re
 import json
 import tempfile
 from PyQt5.QtCore import QUrl
@@ -38,11 +39,19 @@ def get_default_preferences():
     return default_pref
 
 
+def is_midi_file_passed(argv):
+    re_patter = re.compile('\.(mid|midi)$', re.IGNORECASE)
+    # Check input argument length is 2 and the second is a valid midi file.
+    # In addition, check whether it present on file system or not.
+    if len(argv) == 2 and re_patter.search(argv[1]) and os.path.exists(argv[1]):
+        return True
+    return False
+
+
 def main():
     app = QGuiApplication(sys.argv)
     engine = QQmlApplicationEngine()
     engine.quit.connect(app.quit)
-
     app_core = None
 
     if not os.path.exists(PREFERENCES_FILE_PATH):
@@ -54,7 +63,10 @@ def main():
         try:
             preferences = json.load(f)
             wave_filedir = tempfile.mkdtemp('-tmp', 'py-qtimidity-')
-            app_core = AppCore(preferences, wave_filedir)
+            if is_midi_file_passed(sys.argv):
+                app_core = AppCore(preferences, wave_filedir, sys.argv[1])
+            else:
+                app_core = AppCore(preferences, wave_filedir)
             qml_path = resource_path(MAIN_QML)
             engine.rootContext().setContextProperty('app_core', app_core)
 
