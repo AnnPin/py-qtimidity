@@ -66,9 +66,6 @@ Controls2.ApplicationWindow {
                 text: qsTr("Preferences")
                 role: Platform.MenuItem.PreferencesRole
                 onTriggered: {
-                    // TODO
-                    // Load soundfont
-                    // Load config file
                     preferencesWindow.visible = true
                 }
             }
@@ -130,12 +127,13 @@ Controls2.ApplicationWindow {
     }
 
     Layouts.ColumnLayout {
-        id: columnLayout
+        id: mainColumnLayout
         anchors.rightMargin: 10
         anchors.leftMargin: 10
         anchors.bottomMargin: 0
         anchors.topMargin: 0
         anchors.fill: parent
+        enabled: true
 
         Layouts.RowLayout {
             id: rowLayout
@@ -276,6 +274,29 @@ Controls2.ApplicationWindow {
         }
     }
 
+    QtQuick2.Rectangle {
+        id: busyIndicatorPanel
+        anchors.fill: parent
+        color: "transparent"
+        visible: false
+
+        QtQuick2.Rectangle {
+            anchors.fill: parent
+            opacity: 0.25
+            color: "black"
+        }
+
+        Layouts.RowLayout {
+            anchors.fill: parent
+            Layouts.Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+
+            Controls2.BusyIndicator {
+                Layouts.Layout.fillWidth: true
+                running: true
+            }
+        }
+    }
+
     QtQuick2.Connections {
         target: app_core
 
@@ -301,6 +322,11 @@ Controls2.ApplicationWindow {
 
         onSetLoopLabel: {
             loopItem.text = qsTr(newLoopLabel)
+        }
+
+        onToggleBusyIndicator: {
+            busyIndicatorPanel.visible = !busyIndicatorPanel.visible
+            mainColumnLayout.enabled = !mainColumnLayout.enabled
         }
     }
 }

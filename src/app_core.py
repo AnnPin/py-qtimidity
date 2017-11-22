@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import threading
 import subprocess
 import shutil
 import random
@@ -75,7 +76,7 @@ class AppCore(QObject):
             '{}:{:02d}'.format(duration_seconds // 60, duration_seconds % 60)
         )
 
-    def exec_timidity(self, wave_filepath, midi_filepath):
+    def exec_timidity(self, wave_filepath, midi_filepath, on_media_loaded=None):
         config_mode = self.current_timidity_config_mode
         config_path = self.current_timidity_config_path
         config = None
@@ -96,17 +97,28 @@ class AppCore(QObject):
             ['-o', wave_filepath, '-Ow', midi_filepath]
         ]
         timidity_params = [item for sublist in timidity_params_list for item in sublist]
-        subprocess.run(
-            tuple(timidity_params),
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
+
+        def __exec_timidity():
+            proc = subprocess.Popen(
+                tuple(timidity_params),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            proc.wait()
+            if on_media_loaded is not None:
+                on_media_loaded()
+            return
+
+        thread = threading.Thread(target=__exec_timidity)
+        thread.start()
+        self.toggleBusyIndicator.emit()
 
     """
     Register signals
     """
     setFilenameLabel = pyqtSignal(str, arguments=['newFilenameLabel'])
     setLoopLabel = pyqtSignal(str, arguments=['newLoopLabel'])
+    toggleBusyIndicator = pyqtSignal()
 
     setNewCurrentTimeLabel = pyqtSignal(str, arguments=['newCurrentTimeLabel'])
     setNewEndTimeLabel = pyqtSignal(str, arguments=['newEndTimeLabel'])
@@ -139,12 +151,15 @@ class AppCore(QObject):
             generate_random_string(8)
         )
         self.current_wave_filepath = os.path.join(self.wave_filedir, wave_filename)
-        self.exec_timidity(self.current_wave_filepath, self.current_midi_filepath)
 
-        self.current_media = QMediaContent(QUrl.fromLocalFile(self.current_wave_filepath))
-        self.playlist.addMedia(self.current_media)
-        self.playlist.setCurrentIndex(0)
-        self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
+        def __on_media_loaded():
+            self.current_media = QMediaContent(QUrl.fromLocalFile(self.current_wave_filepath))
+            self.playlist.addMedia(self.current_media)
+            self.playlist.setCurrentIndex(0)
+            self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
+            self.toggleBusyIndicator.emit()
+
+        self.exec_timidity(self.current_wave_filepath, self.current_midi_filepath, __on_media_loaded)
 
     @pyqtSlot(str)
     def export_wave_file(self, wave_filepath):
