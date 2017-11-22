@@ -32,4 +32,4 @@ app = BUNDLE(exe,
              name='PyQTimidity.app',
              info_plist={'NSHighResolutionCapable': 'True'},
              icon="icon.icns",
-             bundle_identifier=None)
+             bundle_identifier='com.annpin.PyQTimidity')
