@@ -76,7 +76,7 @@ class AppCore(QObject):
             '{}:{:02d}'.format(duration_seconds // 60, duration_seconds % 60)
         )
 
-    def exec_timidity(self, wave_filepath, midi_filepath, on_media_loaded=None):
+    def exec_timidity(self, wave_filepath, midi_filepath, on_process_completed=None):
         config_mode = self.current_timidity_config_mode
         config_path = self.current_timidity_config_path
         config = None
@@ -105,8 +105,8 @@ class AppCore(QObject):
                 stderr=subprocess.DEVNULL
             )
             proc.wait()
-            if on_media_loaded is not None:
-                on_media_loaded()
+            if on_process_completed is not None:
+                on_process_completed()
             return
 
         thread = threading.Thread(target=__exec_timidity)
@@ -152,18 +152,21 @@ class AppCore(QObject):
         )
         self.current_wave_filepath = os.path.join(self.wave_filedir, wave_filename)
 
-        def __on_media_loaded():
+        def __on_process_completed():
             self.current_media = QMediaContent(QUrl.fromLocalFile(self.current_wave_filepath))
             self.playlist.addMedia(self.current_media)
             self.playlist.setCurrentIndex(0)
             self.playlist.setPlaybackMode(QMediaPlaylist.Loop)
             self.toggleBusyIndicator.emit()
 
-        self.exec_timidity(self.current_wave_filepath, self.current_midi_filepath, __on_media_loaded)
+        self.exec_timidity(self.current_wave_filepath, self.current_midi_filepath, __on_process_completed)
 
     @pyqtSlot(str)
     def export_wave_file(self, wave_filepath):
-        self.exec_timidity(wave_filepath, self.current_midi_filepath)
+        def __on_process_completed():
+            self.toggleBusyIndicator.emit()
+
+        self.exec_timidity(wave_filepath, self.current_midi_filepath, __on_process_completed)
 
     @pyqtSlot()
     def play_pause_button_clicked(self):
