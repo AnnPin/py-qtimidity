@@ -4,6 +4,7 @@
 import os
 import threading
 import subprocess
+import json
 import shutil
 import random
 import string
@@ -36,6 +37,8 @@ class AppCore(QObject):
         self.player.durationChanged.connect(self.duration_changed)
         self.player.positionChanged.connect(self.position_changed)
         self.isPlaying = False
+
+        self.autoPlayOnLoadEnabled = False
         self.loopEnabled = False
 
     def cleanup(self):
@@ -72,6 +75,14 @@ class AppCore(QObject):
         self.setNewEndTimeLabel.emit(
             '{}:{:02d}'.format(duration_seconds // 60, duration_seconds % 60)
         )
+
+    def audio_available_changed(self):
+        # This method is only used when autoPlayOnLoad is enabled.
+        if self.player.isAudioAvailable():
+            # QMediaPlayer#play() and pause() effects QMediaPlayer#audioAvailableChanged signal.
+            # Thus, we immediately disconnect this method before call play() or pause()
+            self.player.audioAvailableChanged.disconnect(self.audio_available_changed)
+            self.play_pause_button_clicked()
 
     def reset_duration_label(self):
         self.setNewEndTimeLabel.emit('--:--')
@@ -120,9 +131,9 @@ class AppCore(QObject):
     """
     Register signals
     """
+    loadPreferences = pyqtSignal(str, arguments=['preferencesJson'])
     loadMidiFileImmediately = pyqtSignal(bool, str, arguments=['loadImmediately', 'filePath'])
     setFilenameLabel = pyqtSignal(str, arguments=['newFilenameLabel'])
-    setLoopLabel = pyqtSignal(str, arguments=['newLoopLabel'])
     toggleBusyIndicator = pyqtSignal()
 
     setNewCurrentTimeLabel = pyqtSignal(str, arguments=['newCurrentTimeLabel'])
@@ -134,6 +145,15 @@ class AppCore(QObject):
     """
     Register slots
     """
+    @pyqtSlot()
+    def reflect_preferences(self):
+        self.autoPlayOnLoadEnabled = self.preferences['AUTO_PLAY_ON_LOAD_BY_DEFAULT']
+        self.loopEnabled = self.preferences['LOOP_BY_DEFAULT']
+        # Pass the preferences dictionary to qml as a json string
+        self.loadPreferences.emit(
+            json.dumps(self.preferences, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
+        )
+
     @pyqtSlot()
     def should_load_midi_file_immediately(self):
         self.loadMidiFileImmediately.emit(
@@ -166,6 +186,10 @@ class AppCore(QObject):
         self.current_wave_filepath = os.path.join(self.wave_filedir, wave_filename)
 
         def __on_process_completed():
+            # Track QMediaPlayer#audioAvailableChanged signal when autoPlayOnLoad is enabled
+            if self.autoPlayOnLoadEnabled:
+                self.player.audioAvailableChanged.connect(self.audio_available_changed)
+
             self.current_media = QMediaContent(QUrl.fromLocalFile(self.current_wave_filepath))
             self.playlist.addMedia(self.current_media)
             self.playlist.setCurrentIndex(0)
@@ -208,11 +232,12 @@ class AppCore(QObject):
         self.player.setVolume(int(volume))
 
     @pyqtSlot()
+    def toggle_auto_play_on_load(self):
+        self.autoPlayOnLoadEnabled = not self.autoPlayOnLoadEnabled
+
+    @pyqtSlot()
     def toggle_loop(self):
         self.loopEnabled = not self.loopEnabled
-        self.setLoopLabel.emit(
-            'Disable loop' if self.loopEnabled else 'Enable loop'
-        )
 
     @pyqtSlot(str, str)
     def set_timidity_config(self, config_mode, config_path):

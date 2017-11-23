@@ -33,10 +33,22 @@ def resource_path(relative_path):
 
 
 def get_default_preferences():
-    default_pref = {
-        'TIMIDITY_LOCATION': '/usr/local/bin/timidity'
+    return {
+        'TIMIDITY_LOCATION': '/usr/local/bin/timidity',
+        'AUTO_PLAY_ON_LOAD_BY_DEFAULT': True,
+        'LOOP_BY_DEFAULT': False
     }
-    return default_pref
+
+
+def ensure_valid_preferences(pref):
+    default_preferences = get_default_preferences()
+    for key in default_preferences.keys():
+        pref[key] = pref[key] if key in pref else default_preferences[key]
+    return pref
+
+
+def save_preferences(f, pref):
+    json.dump(pref, f, ensure_ascii=False, indent=4, sort_keys=True, separators=(',', ': '))
 
 
 def is_valid_midi_file(filepath):
@@ -79,13 +91,13 @@ def main():
     app_core = None
 
     if not os.path.exists(PREFERENCES_FILE_PATH):
-        pref_dict = get_default_preferences()
+        default_preferences = get_default_preferences()
         with open(PREFERENCES_FILE_PATH, 'w') as f:
-            f.write(json.dumps(pref_dict))
+            save_preferences(f, default_preferences)
 
     with open(PREFERENCES_FILE_PATH) as f:
         try:
-            preferences = json.load(f)
+            preferences = ensure_valid_preferences(json.load(f))
             wave_filedir = tempfile.mkdtemp('-tmp', 'py-qtimidity-')
             if is_midi_file_passed(sys.argv):
                 app_core = AppCore(preferences, wave_filedir, sys.argv[1])
@@ -109,6 +121,8 @@ def main():
 
     if app_core is not None:
         app_core.cleanup()
+        with open(PREFERENCES_FILE_PATH, 'w') as f:
+            save_preferences(f, preferences)
 
     del engine
     del app
@@ -116,4 +130,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

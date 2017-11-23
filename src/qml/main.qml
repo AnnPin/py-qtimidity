@@ -107,10 +107,24 @@ Controls2.ApplicationWindow {
             title: qsTr("Playback")
 
             Platform.MenuItem {
+                id: autoPlayItem
+                objectName: "autoPlayItem"
+                text: qsTr("Auto play on load")
+                shortcut: "Ctrl+Alt+A"
+                checkable: true
+                checked: false
+                onTriggered: {
+                    app_core.toggle_auto_play_on_load()
+                }
+            }
+
+            Platform.MenuItem {
                 id: loopItem
                 objectName: "loopItem"
-                text: qsTr("Enable loop")
+                text: qsTr("Loop")
                 shortcut: "Ctrl+Alt+L"
+                checkable: true
+                checked: false
                 onTriggered: {
                     app_core.toggle_loop()
                 }
@@ -304,6 +318,12 @@ Controls2.ApplicationWindow {
     QtQuick2.Connections {
         target: app_core
 
+        onLoadPreferences: {
+            var preferences = JSON.parse(preferencesJson)
+            autoPlayItem.checked = preferences["AUTO_PLAY_ON_LOAD_BY_DEFAULT"]
+            loopItem.checked = preferences["LOOP_BY_DEFAULT"]
+        }
+
         onLoadMidiFileImmediately: {
             if (loadImmediately) {
                 loadMidiFile(filePath)
@@ -330,10 +350,6 @@ Controls2.ApplicationWindow {
             timeSlider.to = newEndTime
         }
 
-        onSetLoopLabel: {
-            loopItem.text = qsTr(newLoopLabel)
-        }
-
         onToggleBusyIndicator: {
             busyIndicatorPanel.visible = !busyIndicatorPanel.visible
             mainColumnLayout.enabled = !mainColumnLayout.enabled
@@ -341,6 +357,7 @@ Controls2.ApplicationWindow {
     }
 
     QtQuick2.Component.onCompleted: {
+        app_core.reflect_preferences()
         app_core.should_load_midi_file_immediately()
     }
 }
